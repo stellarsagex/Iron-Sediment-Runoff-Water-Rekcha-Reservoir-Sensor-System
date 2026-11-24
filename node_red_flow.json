@@ -1,0 +1,353 @@
+[
+    {
+        "id": "rekcha_flow_tab",
+        "type": "tab",
+        "label": "Rekcha Reservoir SCADA",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "mqtt_in_rekcha",
+        "type": "mqtt in",
+        "z": "rekcha_flow_tab",
+        "name": "Rekcha Inlet Telemetry",
+        "topic": "saksham/rekcha/reservoir/telemetry",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "rekcha_mosquitto_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 200,
+        "wires": [
+            [
+                "fn_storage_loss",
+                "fn_fe_precip",
+                "fn_turbidity",
+                "fn_pole_light"
+            ]
+        ]
+    },
+    {
+        "id": "fn_storage_loss",
+        "type": "function",
+        "z": "rekcha_flow_tab",
+        "name": "Extract Storage Loss %",
+        "func": "msg.payload = msg.payload.storage_loss_pct;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 100,
+        "wires": [
+            [
+                "gauge_storage_loss"
+            ]
+        ]
+    },
+    {
+        "id": "fn_fe_precip",
+        "type": "function",
+        "z": "rekcha_flow_tab",
+        "name": "Extract Precipitated Fe",
+        "func": "msg.payload = msg.payload.Fe_precipitated_mgL;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 160,
+        "wires": [
+            [
+                "chart_fe_precip"
+            ]
+        ]
+    },
+    {
+        "id": "fn_turbidity",
+        "type": "function",
+        "z": "rekcha_flow_tab",
+        "name": "Extract Inlet Turbidity",
+        "func": "msg.payload = msg.payload.inlet_turbidity_NTU;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 430,
+        "y": 220,
+        "wires": [
+            [
+                "gauge_turbidity"
+            ]
+        ]
+    },
+    {
+        "id": "fn_pole_light",
+        "type": "function",
+        "z": "rekcha_flow_tab",
+        "name": "Extract Pole Light Status",
+        "func": "msg.payload = msg.payload.status_message;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 280,
+        "wires": [
+            [
+                "text_pole_light"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_storage_loss",
+        "type": "ui-gauge",
+        "z": "rekcha_flow_tab",
+        "name": "Reservoir Storage Loss",
+        "group": "ui_group_rekcha",
+        "order": 1,
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Reservoir Depth / Storage Loss",
+        "units": "%",
+        "icon": "",
+        "prefix": "",
+        "suffix": "%",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c"
+            },
+            {
+                "from": "15",
+                "color": "#ffc800"
+            },
+            {
+                "from": "20",
+                "color": "#ea5353"
+            }
+        ],
+        "min": 0,
+        "max": 30,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 710,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "chart_fe_precip",
+        "type": "ui-chart",
+        "z": "rekcha_flow_tab",
+        "group": "ui_group_rekcha",
+        "name": "Precipitated Iron Trend",
+        "label": "Precipitated Fe(OH)3 Sludge Rate (mg/L)",
+        "order": 3,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "ymin": "0",
+        "ymax": "5",
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 3,
+        "showLegend": false,
+        "removeOlder": "10",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#d9534f"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 6,
+        "height": 4,
+        "className": "",
+        "x": 710,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "gauge_turbidity",
+        "type": "ui-gauge",
+        "z": "rekcha_flow_tab",
+        "name": "Inlet Turbidity",
+        "group": "ui_group_rekcha",
+        "order": 2,
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Inlet Runoff Turbidity",
+        "units": "NTU",
+        "icon": "",
+        "prefix": "",
+        "suffix": " NTU",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c"
+            },
+            {
+                "from": "200",
+                "color": "#ffc800"
+            },
+            {
+                "from": "400",
+                "color": "#ea5353"
+            }
+        ],
+        "min": 0,
+        "max": 700,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 690,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "text_pole_light",
+        "type": "ui-text",
+        "z": "rekcha_flow_tab",
+        "group": "ui_group_rekcha",
+        "order": 4,
+        "width": 6,
+        "height": 1,
+        "name": "Villager Pole Light",
+        "label": "Community Pole Beacon Status:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "className": "",
+        "x": 700,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "rekcha_mosquitto_broker",
+        "type": "mqtt-broker",
+        "name": "Public Mosquitto",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true
+    },
+    {
+        "id": "ui_group_rekcha",
+        "type": "ui-group",
+        "name": "Rekcha Reservoir (8,400 m³) - Sediment & Iron Monitor",
+        "page": "ui_page_rekcha",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_page_rekcha",
+        "type": "ui-page",
+        "name": "Rekcha Reservoir Monitor",
+        "ui": "ui_base_rekcha",
+        "path": "/rekcha",
+        "icon": "water",
+        "layout": "grid",
+        "theme": "ui_theme_rekcha",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "ui_base_rekcha",
+        "type": "ui-base",
+        "name": "Smart Water SCADA",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": true,
+        "showPageTitle": true,
+        "navigationStyle": "default",
+        "titleBarStyle": "default"
+    },
+    {
+        "id": "ui_theme_rekcha",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px",
+            "density": "default"
+        }
+    }
+]

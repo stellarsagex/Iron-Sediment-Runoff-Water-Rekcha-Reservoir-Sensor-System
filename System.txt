@@ -1,0 +1,39 @@
+To connect real-time physical sensors from Rekcha's reservoir to the PHREEQC engine, split the system into a closed-loop two-way MQTT architecture:
+1. Edge Node (ESP32 running MicroPython): Reads the 4 physical probes (pH, Temperature, EC, Turbidity), publishes them to MQTT, and listens for a command from Python to switch the 12V Red Pole Light relay (ON or OFF).
+2. Cloud/Laptop Brain (Python + PHREEQC): Subscribes to the ESP32 sensor stream, runs the phreeqc.dat Iron precipitation and sediment mass balance for the 2,100 m² × 4 m reservoir, updates the Node-RED SCADA screen (optional), and sends the relay trigger back to the ESP32 when cumulative load crosses 2,184 tonnes (20% storage loss).
+
+Part 1: Hardware Pinout & Wiring (ESP32)
+
+Use ADC1 pins (GPIO 32, 33, 34, 35) for analog sensors because ADC2 pins conflict with Wi-Fi on the ESP32:
+• DS18B20 Waterproof Temperature Probe (OneWire): Data pin → GPIO 4 (with a 4.7kΩ pull-up resistor to 3.3V).
+• Analog pH Sensor Board: Signal (Po) → GPIO 34 (ADC1).
+• Analog EC Sensor Board: Signal (A0) → GPIO 35 (ADC1).
+• Analog Turbidity Sensor Board: Signal (A0) → GPIO 32 (ADC1).
+• 1-Channel 5V Relay Module (for 12V Red Pole Light): Signal (IN) → GPIO 26.
+(Note: Most Gravity/DFRobot analog sensor boards output 0–3.0V, which is safe for ESP32 3.3V ADC pins. If using a 5V turbidity module, add a simple 2-resistor voltage divider so the signal stays ≤ 3.3V).
+
+Part 2: ESP32 MicroPython Edge Script (main.py)
+
+Flash MicroPython onto the ESP32 (using Thonny), install umqtt.simple (mip.install("umqtt.simple")), and run.
+
+
+Part 3: Updated Python + PHREEQC Receiver (rekcha_live_server.py)
+
+Run this script on the laptop/server. It waits for live packets from the ESP32, runs the PHREEQC Iron & Sediment calculation using the actual elapsed seconds between packets, updates Node-RED, and sends "ON" or "OFF" back to the ESP32's Red Pole Light.
+
+
+How to Bench-Test This Before Going to Rekcha
+
+1. Bench Calibration: Put the pH probe into a pH 7.0 buffer solution and adjust 1.65 in read_sensors() until it prints 7.00; do the same in a glass of muddy water for Turbidity.
+2. Threshold Test: Temporarily set cumulative_load_tonnes = 2183.99 in rekcha_live_server.py and dip the Turbidity probe into a cup of muddy water—within 5 seconds, Python will compute the spike, cross 2,184.0 tonnes, and click the physical ESP32 relay ON to light up the Red Pole LED!
+
+
+Part 4: For Node-Red
+
+node_red_flow.json configured for the Rekcha Reservoir telemetry (saksham/rekcha/reservoir/telemetry), displaying Storage Loss %, Precipitated Iron (mg/L), Inlet Turbidity (NTU), and the Red Pole Light status.
+
+Import & Launch the Rekcha Dashboard
+
+1. Start node-red in the terminal and open http://127.0.0.
+2. Click Menu (☰) → Import, paste the JSON above, click Import, and click the red Deploy button.
+3. Open http://127.0.0 in the browser to view the Storage Loss % Gauge (turns red at 20%), Inlet Turbidity Gauge, Precipitated Iron Trend Chart, and Community Pole Beacon Status. 
